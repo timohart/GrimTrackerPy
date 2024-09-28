@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Player</title>
+    <style>
+        /* Basic styling or integrate Bootstrap for better UI */
+        form {
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+        }
+
+        input[type="submit"] {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Add Player</h2>
+    <form action="{{ url_for('add_player') }}" method="POST">
+        <label for="player_name">Username:</label>
+        <input type="text" id="player_name" name="player_name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="password_hash">Password:</label>
+        <input type="password" id="password_hash" name="password_hash" required>
+
+        <input type="submit" value="Add Player">
+    </form>
+</body>
+</html>

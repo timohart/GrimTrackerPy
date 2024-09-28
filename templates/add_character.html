@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Character</title>
+    <style>
+        /* Basic styling or integrate Bootstrap for better UI */
+        form {
+            width: 500px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+        }
+
+        input[type="submit"] {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Add Character</h2>
+    <form action="{{ url_for('add_character') }}" method="POST">
+        <label for="player_id">Select Player:</label>
+        <select id="player_id" name="player_id" required>
+            <option value="">--Select Player--</option>
+            {% for player in players %}
+                <option value="{{ player.player_id }}">{{ player.username }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="character_name">Character Name:</label>
+        <input type="text" id="character_name" name="character_name" required>
+
+        <label for="class">Class:</label>
+        <input type="text" id="class" name="class" required>
+
+        <label for="gold">Gold:</label>
+        <input type="number" id="gold" name="gold" min="0" value="0" required>
+
+        <label for="silver">Silver:</label>
+        <input type="number" id="silver" name="silver" min="0" value="0" required>
+
+        <label for="copper">Copper:</label>
+        <input type="number" id="copper" name="copper" min="0" value="0" required>
+
+        <input type="submit" value="Add Character">
+    </form>
+</body>
+</html>
