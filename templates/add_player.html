@@ -1,45 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Player</title>
-    <style>
-        /* Basic styling or integrate Bootstrap for better UI */
-        form {
-            width: 400px;
-            margin: 0 auto;
-        }
+{% extends "base.html" %}
 
-        label {
-            display: block;
-            margin-top: 10px;
-        }
+{% block title %}Add Player{% endblock %}
 
-        input[type="text"], input[type="email"], input[type="password"] {
-            width: 100%;
-            padding: 8px;
-        }
+{% block content %}
+<h2>Add Player</h2>
+<form action="{{ url_for('add_player') }}" method="POST" class="form-container">
+    <div class="form-group">
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" required>
+    </div>
 
-        input[type="submit"] {
-            margin-top: 15px;
-            padding: 10px;
-            width: 100%;
-        }
-    </style>
-</head>
-<body>
-    <h2>Add Player</h2>
-    <form action="{{ url_for('add_player') }}" method="POST">
-        <label for="player_name">Username:</label>
-        <input type="text" id="player_name" name="player_name" required>
+    <div class="form-group">
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" required>
+    </div>
 
+    <div class="form-group">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>
+    </div>
 
-        <label for="password_hash">Password:</label>
-        <input type="password" id="password_hash" name="password_hash" required>
+    <div class="form-group">
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone">
+    </div>
 
+    <div class="form-group">
+        <label for="emergency_name">Emergency Contact Name:</label>
+        <input type="text" id="emergency_name" name="emergency_name">
+    </div>
+
+    <div class="form-group">
+        <label for="emergency_relationship">Emergency Contact Relationship:</label>
+        <input type="text" id="emergency_relationship" name="emergency_relationship">
+    </div>
+
+    <div class="form-group">
+        <label for="emergency_phone">Emergency Contact Phone:</label>
+        <input type="tel" id="emergency_phone" name="emergency_phone">
+    </div>
+
+    <div class="form-group">
+        <label for="medical">Medical Information:</label>
+        <textarea id="medical" name="medical" rows="4"></textarea>
+    </div>
+
+    <div class="form-group">
         <input type="submit" value="Add Player">
-    </form>
-</body>
-</html>
+    </div>
+</form>
+{% endblock %}

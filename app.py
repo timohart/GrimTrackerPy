@@ -30,8 +30,8 @@ def index():
     if conn:
         try:
             cursor = conn.cursor(dictionary=True)
-            # Fetch all players
-            cursor.execute('SELECT * FROM Players')
+            # Fetch all players with the correct column names
+            cursor.execute('SELECT player_id, email, created_at, updated_at FROM Players')
             players = cursor.fetchall()
             return render_template('index.html', players=players)
         except Error as e:
@@ -48,12 +48,17 @@ def index():
 @app.route('/add_player', methods=['GET', 'POST'])
 def add_player():
     if request.method == 'POST':
-        player_name = request.form.get('player_name', '').strip()
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
         email = request.form.get('email', '').strip()
-        password_hash = request.form.get('password_hash', '').strip()  # Ideally, hash the password
+        phone = request.form.get('phone', '').strip()
+        emergency_name = request.form.get('emergency_name', '').strip()
+        emergency_relationship = request.form.get('emergency_relationship', '').strip()
+        emergency_phone = request.form.get('emergency_phone', '').strip()
+        medical = request.form.get('medical', '').strip()
 
-        if not player_name or not email or not password_hash:
-            flash("All fields are required!", "error")
+        if not first_name or not last_name or not email:
+            flash("First Name, Last Name, and Email are required!", "error")
             return redirect(url_for('add_player'))
 
         conn = get_db_connection()
@@ -61,12 +66,13 @@ def add_player():
             try:
                 cursor = conn.cursor()
                 insert_query = '''
-                    INSERT INTO Players (username, email, password_hash)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO Players (first_name, last_name, email, phone, emergency_name, emergency_relationship, emergency_phone, medical, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 '''
-                cursor.execute(insert_query, (player_name, email, password_hash))
+                now = datetime.now()
+                cursor.execute(insert_query, (first_name, last_name, email, phone, emergency_name, emergency_relationship, emergency_phone, medical, now, now))
                 conn.commit()
-                flash(f"Player '{player_name}' added successfully!", "success")
+                flash(f"Player '{first_name} {last_name}' added successfully!", "success")
             except Error as e:
                 flash(f"Error adding player: {e}", "error")
             finally:
@@ -74,8 +80,8 @@ def add_player():
                 conn.close()
             return redirect(url_for('index'))
         else:
-            flash("Failed to connect to the database.", "error")
-            return redirect(url_for('index'))
+            flash("Error connecting to the database.", "error")
+            return redirect(url_for('add_player'))
     return render_template('add_player.html')
 
 # Existing routes: add_player, checkin_player, checkout_player, delete_player
@@ -198,6 +204,11 @@ def add_item():
 # 3. Add Event
 @app.route('/add_event', methods=['GET', 'POST'])
 def add_event():
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
         event_name = request.form.get('event_name', '').strip()
         description = request.form.get('description', '').strip()
@@ -403,6 +414,24 @@ def assign_ap():
 # ------------------- Existing Routes -------------------
 # (Check-in, Check-out, Delete Player)
 # ... (as previously provided)
+
+@app.route('/delete_player/<int:id>', methods=['POST'])
+def delete_player(id):
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM Players WHERE player_id = %s', (id,))
+            conn.commit()
+            flash('Player deleted successfully!', 'success')
+        except Error as e:
+            flash(f'Error deleting player: {e}', 'error')
+        finally:
+            cursor.close()
+            conn.close()
+    else:
+        flash('Error connecting to the database.', 'error')
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)

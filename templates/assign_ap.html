@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assign AP to Character</title>
+    <style>
+        /* Basic styling or integrate Bootstrap for better UI */
+        form {
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px;
+        }
+
+        input[type="submit"] {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Assign AP to Character</h2>
+    <form action="{{ url_for('assign_ap') }}" method="POST">
+        <label for="ap_id">Select AP Earned Record:</label>
+        <select id="ap_id" name="ap_id" required>
+            <option value="">--Select AP Record--</option>
+            {% for ap in ap_records %}
+                <option value="{{ ap.ap_id }}">Player ID: {{ ap.player_id }}, Date: {{ ap.ap_date }}, AP: {{ ap.ap_amount }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="character_id">Select Character:</label>
+        <select id="character_id" name="character_id" required>
+            <option value="">--Select Character--</option>
+            {% for character in characters %}
+                <option value="{{ character.character_id }}">{{ character.character_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="assigned_ap">Assigned AP:</label>
+        <input type="number" id="assigned_ap" name="assigned_ap" min="1" value="1" required>
+
+        <input type="submit" value="Assign AP">
+    </form>
+</body>
+</html>

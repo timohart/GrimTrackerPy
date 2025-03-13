@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}GrimTracker{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="nav-buttons">
+        <form action="{{ url_for('index') }}" method="get">
+            <button type="submit">Home</button>
+        </form>
+        <form action="{{ url_for('add_player') }}" method="get">
+            <button type="submit">Add Player</button>
+        </form>
+        <form action="{{ url_for('add_character') }}" method="get">
+            <button type="submit">Add Character</button>
+        </form>
+        <form action="{{ url_for('add_item') }}" method="get">
+            <button type="submit">Add Item</button>
+        </form>
+        <form action="{{ url_for('add_event') }}" method="get">
+            <button type="submit">Add Event</button>
+        </form>
+        <form action="{{ url_for('add_attendance') }}" method="get">
+            <button type="submit">Log Attendance</button>
+        </form>
+        <form action="{{ url_for('add_apearned') }}" method="get">
+            <button type="submit">Log AP Earned</button>
+        </form>
+        <form action="{{ url_for('assign_ap') }}" method="get">
+            <button type="submit">Assign AP to Character</button>
+        </form>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>
