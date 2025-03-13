@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}View Player{% endblock %}
+
+{% block content %}
+<h2>View Player</h2>
+<div class="player-details">
+    <p><strong>First Name:</strong> {{ player.first_name }}</p>
+    <p><strong>Last Name:</strong> {{ player.last_name }}</p>
+    <p><strong>Email:</strong> {{ player.email }}</p>
+    <p><strong>Phone:</strong> {{ player.phone }}</p>
+    <p><strong>Emergency Contact Name:</strong> {{ player.emergency_name }}</p>
+    <p><strong>Emergency Contact Relationship:</strong> {{ player.emergency_relationship }}</p>
+    <p><strong>Emergency Contact Phone:</strong> {{ player.emergency_phone }}</p>
+    <p><strong>Medical Information:</strong> {{ player.medical }}</p>
+    <p><strong>Created At:</strong> {{ player.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    <p><strong>Updated At:</strong> {{ player.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+</div>
+{% endblock %}

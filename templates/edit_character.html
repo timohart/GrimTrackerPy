@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Add Character{% endblock %}
+{% block title %}Edit Character{% endblock %}
 
 {% block content %}
-<h2>Add Character</h2>
-<form action="{{ url_for('add_character') }}" method="POST" class="form-container">
+<h2>Edit Character</h2>
+<form action="{{ url_for('edit_character', id=character.character_id) }}" method="POST" class="form-container">
     <div class="form-group">
         <label for="player_id">Select Player:</label>
         <select id="player_id" name="player_id" required>
             <option value="">--Select Player--</option>
             {% for player in players %}
-                <option value="{{ player.player_id }}">{{ player.first_name }} {{ player.last_name }}</option>
+                <option value="{{ player.player_id }}" {% if player.player_id == character.player_id %}selected{% endif %}>{{ player.first_name }} {{ player.last_name }}</option>
             {% endfor %}
         </select>
     </div>
@@ -20,7 +20,7 @@
         <select id="race_id" name="race_id" required>
             <option value="">--Select Race--</option>
             {% for race in races %}
-                <option value="{{ race.race_id }}">{{ race.name }}</option>
+                <option value="{{ race.race_id }}" {% if race.race_id == character.race_id %}selected{% endif %}>{{ race.name }}</option>
             {% endfor %}
         </select>
     </div>
@@ -30,33 +30,33 @@
         <select id="archetype_id" name="archetype_id" required>
             <option value="">--Select Archetype--</option>
             {% for archetype in archetypes %}
-                <option value="{{ archetype.archetype_id }}">{{ archetype.name }}</option>
+                <option value="{{ archetype.archetype_id }}" {% if archetype.archetype_id == character.archetype_id %}selected{% endif %}>{{ archetype.name }}</option>
             {% endfor %}
         </select>
     </div>
 
     <div class="form-group">
         <label for="name">Character Name:</label>
-        <input type="text" id="name" name="name" required>
+        <input type="text" id="name" name="name" value="{{ character.name }}" required>
     </div>
 
     <div class="form-group">
         <label for="gold">Gold:</label>
-        <input type="number" id="gold" name="gold" min="0" value="0" required>
+        <input type="number" id="gold" name="gold" min="0" value="{{ character.gold }}" required>
     </div>
 
     <div class="form-group">
         <label for="silver">Silver:</label>
-        <input type="number" id="silver" name="silver" min="0" value="0" required>
+        <input type="number" id="silver" name="silver" min="0" value="{{ character.silver }}" required>
     </div>
 
     <div class="form-group">
         <label for="copper">Copper:</label>
-        <input type="number" id="copper" name="copper" min="0" value="0" required>
+        <input type="number" id="copper" name="copper" min="0" value="{{ character.copper }}" required>
     </div>
 
     <div class="form-group">
-        <input type="submit" value="Add Character">
+        <input type="submit" value="Update Character">
     </div>
 </form>
 {% endblock %}

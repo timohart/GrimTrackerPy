@@ -5,17 +5,6 @@
 {% block content %}
 <h1>Player Management</h1>
 
-<!-- Navigation Links -->
-<!-- <div class="nav-links">
-    <a href="{{ url_for('add_player') }}">Add Player</a>
-    <a href="{{ url_for('add_character') }}">Add Character</a>
-    <a href="{{ url_for('add_item') }}">Add Item</a>
-    <a href="{{ url_for('add_event') }}">Add Event</a>
-    <a href="{{ url_for('add_attendance') }}">Log Attendance</a>
-    <a href="{{ url_for('add_apearned') }}">Log AP Earned</a>
-    <a href="{{ url_for('assign_ap') }}">Assign AP to Character</a>
-</div> -->
-
 <!-- Flash Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -55,6 +44,12 @@
             {% endif %}
         </td>
         <td>
+            <form action="{{ url_for('view_player', id=player.player_id) }}" method="GET" style="display:inline;">
+                <button type="submit">View</button>
+            </form>
+            <form action="{{ url_for('edit_player', id=player.player_id) }}" method="GET" style="display:inline;">
+                <button type="submit">Edit</button>
+            </form>
             <form action="{{ url_for('delete_player', id=player.player_id) }}" method="POST" style="display:inline;">
                 <button type="submit" onclick="return confirm('Are you sure you want to delete this player?');">Delete</button>
             </form>

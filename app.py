@@ -99,33 +99,26 @@ def add_character():
 
     if request.method == 'POST':
         player_id = request.form.get('player_id')
-        character_name = request.form.get('character_name', '').strip()
-        character_class = request.form.get('class', '').strip()
-        gold = request.form.get('gold', '0').strip()
-        silver = request.form.get('silver', '0').strip()
-        copper = request.form.get('copper', '0').strip()
+        race_id = request.form.get('race_id')
+        archetype_id = request.form.get('archetype_id')
+        name = request.form.get('name')
+        gold = request.form.get('gold')
+        silver = request.form.get('silver')
+        copper = request.form.get('copper')
 
-        if not player_id or not character_name or not character_class:
-            flash("Player, Character Name, and Class are required!", "error")
-            return redirect(url_for('add_character'))
-
-        try:
-            gold = int(gold)
-            silver = int(silver)
-            copper = int(copper)
-        except ValueError:
-            flash("Gold, Silver, and Copper must be integers.", "error")
+        if not player_id or not race_id or not archetype_id or not name:
+            flash("Player, Race, Archetype, and Character Name are required!", "error")
             return redirect(url_for('add_character'))
 
         try:
             cursor = conn.cursor()
             insert_query = '''
-                INSERT INTO Characters (player_id, character_name, class, gold, silver, copper)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO Characters (player_id, race_id, archetype_id, name, gold, silver, copper)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             '''
-            cursor.execute(insert_query, (player_id, character_name, character_class, gold, silver, copper))
+            cursor.execute(insert_query, (player_id, race_id, archetype_id, name, gold, silver, copper))
             conn.commit()
-            flash(f"Character '{character_name}' added successfully!", "success")
+            flash(f"Character '{name}' added successfully!", "success")
         except Error as e:
             flash(f"Error adding character: {e}", "error")
         finally:
@@ -133,18 +126,24 @@ def add_character():
             conn.close()
         return redirect(url_for('index'))
 
-    # GET request: Fetch all players to select from
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT player_id, username FROM Players')
+        cursor.execute('SELECT player_id, first_name, last_name FROM Players')
         players = cursor.fetchall()
-        return render_template('add_character.html', players=players)
+
+        cursor.execute('SELECT race_id, name FROM Races')
+        races = cursor.fetchall()
+
+        cursor.execute('SELECT archetype_id, name FROM Archetypes')
+        archetypes = cursor.fetchall()
     except Error as e:
-        flash(f"Error fetching players: {e}", "error")
+        flash(f"Error fetching data: {e}", "error")
         return redirect(url_for('index'))
     finally:
         cursor.close()
         conn.close()
+
+    return render_template('add_character.html', players=players, races=races, archetypes=archetypes)
 
 # 2. Add Item
 @app.route('/add_item', methods=['GET', 'POST'])
@@ -432,6 +431,223 @@ def delete_player(id):
     else:
         flash('Error connecting to the database.', 'error')
     return redirect(url_for('index'))
+
+@app.route('/edit_player/<int:id>', methods=['GET', 'POST'])
+def edit_player(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
+        email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
+        emergency_name = request.form.get('emergency_name', '').strip()
+        emergency_relationship = request.form.get('emergency_relationship', '').strip()
+        emergency_phone = request.form.get('emergency_phone', '').strip()
+        medical = request.form.get('medical', '').strip()
+
+        if not first_name or not last_name or not email:
+            flash("First Name, Last Name, and Email are required!", "error")
+            return redirect(url_for('edit_player', id=id))
+
+        try:
+            cursor = conn.cursor()
+            update_query = '''
+                UPDATE Players
+                SET first_name = %s, last_name = %s, email = %s, phone = %s, emergency_name = %s, emergency_relationship = %s, emergency_phone = %s, medical = %s, updated_at = %s
+                WHERE player_id = %s
+            '''
+            now = datetime.now()
+            cursor.execute(update_query, (first_name, last_name, email, phone, emergency_name, emergency_relationship, emergency_phone, medical, now, id))
+            conn.commit()
+            flash(f"Player '{first_name} {last_name}' updated successfully!", "success")
+        except Error as e:
+            flash(f"Error updating player: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM Players WHERE player_id = %s', (id,))
+        player = cursor.fetchone()
+        if player is None:
+            flash("Player not found.", "error")
+            return redirect(url_for('index'))
+    except Error as e:
+        flash(f"Error fetching player: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('edit_player.html', player=player)
+
+@app.route('/view_player/<int:id>', methods=['GET'])
+def view_player(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM Players WHERE player_id = %s', (id,))
+        player = cursor.fetchone()
+        if player is None:
+            flash("Player not found.", "error")
+            return redirect(url_for('index'))
+    except Error as e:
+        flash(f"Error fetching player: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('view_player.html', player=player)
+
+@app.route('/view_characters', methods=['GET'])
+def view_characters():
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT c.character_id, c.name AS character_name, p.first_name, p.last_name, r.name AS race_name, a.name AS archetype_name, c.gold, c.silver, c.copper
+            FROM Characters c
+            JOIN Players p ON c.player_id = p.player_id
+            JOIN Races r ON c.race_id = r.race_id
+            JOIN Archetypes a ON c.archetype_id = a.archetype_id
+        ''')
+        characters = cursor.fetchall()
+    except Error as e:
+        flash(f"Error fetching characters: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('view_characters.html', characters=characters)
+
+@app.route('/delete_character/<int:id>', methods=['POST'])
+def delete_character(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_characters'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM Characters WHERE character_id = %s', (id,))
+        conn.commit()
+        flash('Character deleted successfully!', 'success')
+    except Error as e:
+        flash(f'Error deleting character: {e}', 'error')
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('view_characters'))
+
+@app.route('/view_character/<int:id>', methods=['GET'])
+def view_character(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_characters'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT c.character_id, c.name AS character_name, p.first_name, p.last_name, r.name AS race_name, a.name AS archetype_name, c.gold, c.silver, c.copper, c.character_sheet
+            FROM Characters c
+            JOIN Players p ON c.player_id = p.player_id
+            JOIN Races r ON c.race_id = r.race_id
+            JOIN Archetypes a ON c.archetype_id = a.archetype_id
+            WHERE c.character_id = %s
+        ''', (id,))
+        character = cursor.fetchone()
+        if character is None:
+            flash("Character not found.", "error")
+            return redirect(url_for('view_characters'))
+    except Error as e:
+        flash(f"Error fetching character: {e}", "error")
+        return redirect(url_for('view_characters'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('view_character.html', character=character)
+
+@app.route('/edit_character/<int:id>', methods=['GET', 'POST'])
+def edit_character(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_characters'))
+
+    if request.method == 'POST':
+        player_id = request.form.get('player_id')
+        race_id = request.form.get('race_id')
+        archetype_id = request.form.get('archetype_id')
+        name = request.form.get('name')
+        gold = request.form.get('gold')
+        silver = request.form.get('silver')
+        copper = request.form.get('copper')
+
+        if not player_id or not race_id or not archetype_id or not name:
+            flash("Player, Race, Archetype, and Character Name are required!", "error")
+            return redirect(url_for('edit_character', id=id))
+
+        try:
+            cursor = conn.cursor()
+            update_query = '''
+                UPDATE Characters
+                SET player_id = %s, race_id = %s, archetype_id = %s, name = %s, gold = %s, silver = %s, copper = %s
+                WHERE character_id = %s
+            '''
+            cursor.execute(update_query, (player_id, race_id, archetype_id, name, gold, silver, copper, id))
+            conn.commit()
+            flash(f"Character '{name}' updated successfully!", "success")
+        except Error as e:
+            flash(f"Error updating character: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('view_characters'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM Characters WHERE character_id = %s', (id,))
+        character = cursor.fetchone()
+
+        cursor.execute('SELECT player_id, first_name, last_name FROM Players')
+        players = cursor.fetchall()
+
+        cursor.execute('SELECT race_id, name FROM Races')
+        races = cursor.fetchall()
+
+        cursor.execute('SELECT archetype_id, name FROM Archetypes')
+        archetypes = cursor.fetchall()
+
+        if character is None:
+            flash("Character not found.", "error")
+            return redirect(url_for('view_characters'))
+    except Error as e:
+        flash(f"Error fetching data: {e}", "error")
+        return redirect(url_for('view_characters'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('edit_character.html', character=character, players=players, races=races, archetypes=archetypes)
 
 if __name__ == '__main__':
     app.run(debug=True)

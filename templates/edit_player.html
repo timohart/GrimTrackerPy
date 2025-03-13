@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Player{% endblock %}
+
+{% block content %}
+<h2>Edit Player</h2>
+<form action="{{ url_for('edit_player', id=player.player_id) }}" method="POST" class="form-container">
+    <div class="form-group">
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" value="{{ player.first_name }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" value="{{ player.last_name }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ player.email }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone" value="{{ player.phone }}">
+    </div>
+
+    <div class="form-group">
+        <label for="emergency_name">Emergency Contact Name:</label>
+        <input type="text" id="emergency_name" name="emergency_name" value="{{ player.emergency_name }}">
+    </div>
+
+    <div class="form-group">
+        <label for="emergency_relationship">Emergency Contact Relationship:</label>
+        <input type="text" id="emergency_relationship" name="emergency_relationship" value="{{ player.emergency_relationship }}">
+    </div>
+
+    <div class="form-group">
+        <label for="emergency_phone">Emergency Contact Phone:</label>
+        <input type="tel" id="emergency_phone" name="emergency_phone" value="{{ player.emergency_phone }}">
+    </div>
+
+    <div class="form-group">
+        <label for="medical">Medical Information:</label>
+        <textarea id="medical" name="medical" rows="4">{{ player.medical }}</textarea>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Update Player">
+    </div>
+</form>
+{% endblock %}

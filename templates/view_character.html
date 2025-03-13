@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}View Character{% endblock %}
+
+{% block content %}
+<h2>View Character</h2>
+<div class="character-details">
+    <p><strong>Character Name:</strong> {{ character.character_name }}</p>
+    <p><strong>Player Name:</strong> {{ character.first_name }} {{ character.last_name }}</p>
+    <p><strong>Race:</strong> {{ character.race_name }}</p>
+    <p><strong>Archetype:</strong> {{ character.archetype_name }}</p>
+    <p><strong>Gold:</strong> {{ character.gold }}</p>
+    <p><strong>Silver:</strong> {{ character.silver }}</p>
+    <p><strong>Copper:</strong> {{ character.copper }}</p>
+    <p><strong>Character Sheet:</strong> {{ character.character_sheet }}</p>
+</div>
+{% endblock %}
