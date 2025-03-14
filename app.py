@@ -918,9 +918,9 @@ def checkin():
         event_id = request.form.get('event_id')
         player_id = request.form.get('player_id')
         character_id = request.form.get('character_id')
-        copper = request.form.get('copper', 0)
-        silver = request.form.get('silver', 0)
-        gold = request.form.get('gold', 0)
+        copper = request.form.get('copper')
+        silver = request.form.get('silver')
+        gold = request.form.get('gold')
         timestamp = datetime.now()
 
         if not event_id or not player_id or not character_id:
@@ -973,9 +973,9 @@ def checkout():
         event_id = request.form.get('event_id')
         player_id = request.form.get('player_id')
         character_id = request.form.get('character_id')
-        copper = request.form.get('copper', 0)
-        silver = request.form.get('silver', 0)
-        gold = request.form.get('gold', 0)
+        copper = request.form.get('copper')
+        silver = request.form.get('silver')
+        gold = request.form.get('gold')
         timestamp = datetime.now()
 
         if not event_id or not player_id or not character_id:

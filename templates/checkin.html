@@ -17,7 +17,7 @@
 
     <div class="form-group">
         <label for="player_id">Select Player:</label>
-        <select id="player_id" name="player_id" required>
+        <select id="player_id" name="player_id" required onchange="filterCharacters()">
             <option value="">--Select Player--</option>
             {% for player in players %}
                 <option value="{{ player.player_id }}">{{ player.first_name }} {{ player.last_name }}</option>
@@ -27,10 +27,10 @@
 
     <div class="form-group">
         <label for="character_id">Select Character:</label>
-        <select id="character_id" name="character_id" required>
+        <select id="character_id" name="character_id" required onchange="fillCharacterCoins()">
             <option value="">--Select Character--</option>
             {% for character in characters %}
-                <option value="{{ character.character_id }}">{{ character.character_name }}</option>
+                <option value="{{ character.character_id }}" data-player-id="{{ character.player_id }}" data-copper="{{ character.copper }}" data-silver="{{ character.silver }}" data-gold="{{ character.gold }}">{{ character.character_name }}</option>
             {% endfor %}
         </select>
     </div>
@@ -54,4 +54,38 @@
         <input type="submit" value="Check In">
     </div>
 </form>
+
+<script>
+function filterCharacters() {
+    var player_id = document.getElementById('player_id').value;
+    var characterSelect = document.getElementById('character_id');
+    var options = characterSelect.options;
+
+    for (var i = 0; i < options.length; i++) {
+        var option = options[i];
+        if (option.value === "" || option.getAttribute('data-player-id') === player_id) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+        }
+    }
+    characterSelect.value = "";
+    fillCharacterCoins();
+}
+
+function fillCharacterCoins() {
+    var characterSelect = document.getElementById('character_id');
+    var selectedOption = characterSelect.options[characterSelect.selectedIndex];
+
+    if (selectedOption) {
+        document.getElementById('copper').value = selectedOption.getAttribute('data-copper');
+        document.getElementById('silver').value = selectedOption.getAttribute('data-silver');
+        document.getElementById('gold').value = selectedOption.getAttribute('data-gold');
+    } else {
+        document.getElementById('copper').value = 0;
+        document.getElementById('silver').value = 0;
+        document.getElementById('gold').value = 0;
+    }
+}
+</script>
 {% endblock %}
