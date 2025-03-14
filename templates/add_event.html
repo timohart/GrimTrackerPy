@@ -1,55 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Event</title>
-    <style>
-        /* Basic styling or integrate Bootstrap for better UI */
-        form {
-            width: 600px;
-            margin: 0 auto;
-        }
+{% extends "base.html" %}
 
-        label {
-            display: block;
-            margin-top: 10px;
-        }
+{% block title %}Add Event{% endblock %}
 
-        input[type="text"], input[type="date"], textarea {
-            width: 100%;
-            padding: 8px;
-        }
+{% block content %}
+<h2>Add Event</h2>
+<form action="{{ url_for('add_event') }}" method="POST" class="form-container">
+    <div class="form-group">
+        <label for="name">Event Name:</label>
+        <input type="text" id="name" name="name" required>
+    </div>
 
-        textarea {
-            resize: vertical;
-        }
+    <div class="form-group">
+        <label for="start">Start Date and Time:</label>
+        <input type="datetime-local" id="start" name="start" required>
+    </div>
 
-        input[type="submit"] {
-            margin-top: 15px;
-            padding: 10px;
-            width: 100%;
-        }
-    </style>
-</head>
-<body>
-    <h2>Add Event</h2>
-    <form action="{{ url_for('add_event') }}" method="POST">
-        <label for="event_name">Event Name:</label>
-        <input type="text" id="event_name" name="event_name" required>
+    <div class="form-group">
+        <label for="end">End Date and Time:</label>
+        <input type="datetime-local" id="end" name="end" required>
+    </div>
 
-        <label for="description">Description:</label>
-        <textarea id="description" name="description"></textarea>
-
-        <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date" required>
-
-        <label for="end_date">End Date:</label>
-        <input type="date" id="end_date" name="end_date" required>
-
-        <label for="location">Location:</label>
-        <input type="text" id="location" name="location">
-
+    <div class="form-group">
         <input type="submit" value="Add Event">
-    </form>
-</body>
-</html>
+    </div>
+</form>
+{% endblock %}

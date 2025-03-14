@@ -212,25 +212,28 @@ def add_event():
         return redirect(url_for('index'))
 
     if request.method == 'POST':
-        event_name = request.form.get('event_name', '').strip()
-        description = request.form.get('description', '').strip()
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
-        location = request.form.get('location', '').strip()
+        name = request.form.get('name')
+        start = request.form.get('start')
+        end = request.form.get('end')
 
-        if not event_name or not start_date or not end_date:
-            flash("Event Name, Start Date, and End Date are required!", "error")
+        # Debugging statements
+        print(f"Name: {name}")
+        print(f"Start: {start}")
+        print(f"End: {end}")
+
+        if not name or not start or not end:
+            flash("All fields are required!", "error")
             return redirect(url_for('add_event'))
 
         try:
             cursor = conn.cursor()
             insert_query = '''
-                INSERT INTO Events (event_name, description, start_date, end_date, location)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO Events (name, start, end)
+                VALUES (%s, %s, %s)
             '''
-            cursor.execute(insert_query, (event_name, description, start_date, end_date, location))
+            cursor.execute(insert_query, (name, start, end))
             conn.commit()
-            flash(f"Event '{event_name}' added successfully!", "success")
+            flash(f"Event '{name}' added successfully!", "success")
         except Error as e:
             flash(f"Error adding event: {e}", "error")
         finally:
@@ -791,6 +794,118 @@ def move_character_item(id):
         conn.close()
 
     return render_template('move_character_item.html', character_item=character_item, characters=characters)
+
+@app.route('/view_events', methods=['GET'])
+def view_events():
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT event_id, name, start, end FROM Events')
+        events = cursor.fetchall()
+    except Error as e:
+        flash(f"Error fetching events: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('view_events.html', events=events)
+
+@app.route('/view_event/<int:id>', methods=['GET'])
+def view_event(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_events'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT event_id, name, start, end FROM Events WHERE event_id = %s', (id,))
+        event = cursor.fetchone()
+        if event is None:
+            flash("Event not found.", "error")
+            return redirect(url_for('view_events'))
+    except Error as e:
+        flash(f"Error fetching event: {e}", "error")
+        return redirect(url_for('view_events'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('view_event.html', event=event)
+
+@app.route('/edit_event/<int:id>', methods=['GET', 'POST'])
+def edit_event(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_events'))
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        start = request.form.get('start')
+        end = request.form.get('end')
+
+        if not name or not start or not end:
+            flash("All fields are required!", "error")
+            return redirect(url_for('edit_event', id=id))
+
+        try:
+            cursor = conn.cursor()
+            update_query = '''
+                UPDATE Events
+                SET name = %s, start = %s, end = %s
+                WHERE event_id = %s
+            '''
+            cursor.execute(update_query, (name, start, end, id))
+            conn.commit()
+            flash(f"Event '{name}' updated successfully!", "success")
+        except Error as e:
+            flash(f"Error updating event: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('view_events'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM Events WHERE event_id = %s', (id,))
+        event = cursor.fetchone()
+        if event is None:
+            flash("Event not found.", "error")
+            return redirect(url_for('view_events'))
+    except Error as e:
+        flash(f"Error fetching event: {e}", "error")
+        return redirect(url_for('view_events'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('edit_event.html', event=event)
+
+@app.route('/delete_event/<int:id>', methods=['POST'])
+def delete_event(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_events'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM Events WHERE event_id = %s', (id,))
+        conn.commit()
+        flash('Event deleted successfully!', 'success')
+    except Error as e:
+        flash(f'Error deleting event: {e}', 'error')
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('view_events'))
 
 if __name__ == '__main__':
     app.run(debug=True)

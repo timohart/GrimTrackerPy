@@ -28,6 +28,9 @@
         <form action="{{ url_for('add_event') }}" method="get">
             <button type="submit">Add Event</button>
         </form>
+        <form action="{{ url_for('view_events') }}" method="get">
+            <button type="submit">View Events</button>
+        </form>
         <form action="{{ url_for('add_attendance') }}" method="get">
             <button type="submit">Log Attendance</button>
         </form>
@@ -51,5 +54,9 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
+
+    <div class="footer">
+        <p>&copy; Timo Hartwig 2025 | Contact: <a href="mailto:timoh.larp@gmail.com">timoh.larp@gmail.com</a></p>
+    </div>
 </body>
 </html>
