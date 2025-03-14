@@ -367,31 +367,32 @@ def assign_ap():
         return redirect(url_for('index'))
 
     if request.method == 'POST':
-        ap_id = request.form.get('ap_id')
+        player_id = request.form.get('player_id')
         character_id = request.form.get('character_id')
-        assigned_ap = request.form.get('assigned_ap', '1').strip()
+        quantity = request.form.get('quantity')
+        reason = request.form.get('reason')
 
-        if not ap_id or not character_id:
-            flash("AP Earned Record and Character are required!", "error")
+        if not player_id or not character_id or not quantity:
+            flash("Player, Character, and Quantity are required!", "error")
             return redirect(url_for('assign_ap'))
 
         try:
-            assigned_ap = int(assigned_ap)
-            if assigned_ap < 1:
+            quantity = int(quantity)
+            if quantity < 1:
                 raise ValueError
         except ValueError:
-            flash("Assigned AP must be a positive integer.", "error")
+            flash("Quantity must be a positive integer.", "error")
             return redirect(url_for('assign_ap'))
 
         try:
             cursor = conn.cursor()
             insert_query = '''
-                INSERT INTO APAssignment (ap_id, character_id, assigned_ap)
-                VALUES (%s, %s, %s)
+                INSERT INTO ap_assignment (player_id, character_id, quantity, reason)
+                VALUES (%s, %s, %s, %s)
             '''
-            cursor.execute(insert_query, (ap_id, character_id, assigned_ap))
+            cursor.execute(insert_query, (player_id, character_id, quantity, reason))
             conn.commit()
-            flash("AP assigned to character successfully!", "success")
+            flash("AP assigned successfully!", "success")
         except Error as e:
             flash(f"Error assigning AP: {e}", "error")
         finally:
@@ -399,22 +400,75 @@ def assign_ap():
             conn.close()
         return redirect(url_for('index'))
 
-    # GET request: Fetch all APEarned records and Characters to select from
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT ap_id, ap_date, ap_amount, player_id FROM APEarned')
-        ap_records = cursor.fetchall()
+        cursor.execute('SELECT player_id, first_name, last_name FROM Players')
+        players = cursor.fetchall()
 
-        cursor.execute('SELECT character_id, character_name FROM Characters')
+        cursor.execute('SELECT character_id, name AS character_name FROM Characters')
         characters = cursor.fetchall()
-
-        return render_template('assign_ap.html', ap_records=ap_records, characters=characters)
     except Error as e:
         flash(f"Error fetching data: {e}", "error")
         return redirect(url_for('index'))
     finally:
         cursor.close()
         conn.close()
+
+    return render_template('assign_ap.html', players=players, characters=characters)
+
+# 7. Add AP
+@app.route('/add_ap', methods=['GET', 'POST'])
+def add_ap():
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        player_id = request.form.get('player_id')
+        quantity = request.form.get('quantity')
+        reason = request.form.get('reason')
+
+        if not player_id or not quantity:
+            flash("Player and Quantity are required!", "error")
+            return redirect(url_for('add_ap'))
+
+        try:
+            quantity = int(quantity)
+            if quantity < 1:
+                raise ValueError
+        except ValueError:
+            flash("Quantity must be a positive integer.", "error")
+            return redirect(url_for('add_ap'))
+
+        try:
+            cursor = conn.cursor()
+            insert_query = '''
+                INSERT INTO ap_creation (player_id, quantity, reason)
+                VALUES (%s, %s, %s)
+            '''
+            cursor.execute(insert_query, (player_id, quantity, reason))
+            conn.commit()
+            flash("AP added successfully!", "success")
+        except Error as e:
+            flash(f"Error adding AP: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT player_id, first_name, last_name FROM Players')
+        players = cursor.fetchall()
+    except Error as e:
+        flash(f"Error fetching players: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('add_ap.html', players=players)
 
 # ------------------- Existing Routes -------------------
 # (Check-in, Check-out, Delete Player)
@@ -498,15 +552,19 @@ def view_player(id):
     conn = get_db_connection()
     if not conn:
         flash("Failed to connect to the database.", "error")
-        return redirect(url_for('index'))
+        return redirect(url_for('view_players'))
 
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM Players WHERE player_id = %s', (id,))
+        cursor.execute('''
+            SELECT player_id, first_name, last_name, email, phone, emergency_name, emergency_relationship, emergency_phone, medical, created_at, updated_at
+            FROM Players
+            WHERE player_id = %s
+        ''', (id,))
         player = cursor.fetchone()
         if player is None:
             flash("Player not found.", "error")
-            return redirect(url_for('index'))
+            return redirect(url_for('view_players'))
 
         cursor.execute('''
             SELECT c.character_id, c.name AS character_name, r.name AS race_name, a.name AS archetype_name, c.gold, c.silver, c.copper
@@ -516,14 +574,29 @@ def view_player(id):
             WHERE c.player_id = %s
         ''', (id,))
         characters = cursor.fetchall()
+
+        cursor.execute('''
+            SELECT ap_c_id, quantity, reason, created_at
+            FROM ap_creation
+            WHERE player_id = %s
+            ORDER BY created_at DESC
+        ''', (id,))
+        ap_log = cursor.fetchall()
+
+        cursor.execute('''
+            SELECT SUM(quantity) AS total_ap
+            FROM ap_creation
+            WHERE player_id = %s
+        ''', (id,))
+        total_ap = cursor.fetchone()['total_ap'] or 0
     except Error as e:
-        flash(f"Error fetching player or characters: {e}", "error")
-        return redirect(url_for('index'))
+        flash(f"Error fetching player data: {e}", "error")
+        return redirect(url_for('view_players'))
     finally:
         cursor.close()
         conn.close()
 
-    return render_template('view_player.html', player=player, characters=characters)
+    return render_template('view_player.html', player=player, characters=characters, ap_log=ap_log, total_ap=total_ap)
 
 @app.route('/view_characters', methods=['GET'])
 def view_characters():
@@ -600,14 +673,29 @@ def view_character(id):
             WHERE ci.character_id = %s
         ''', (id,))
         items = cursor.fetchall()
+
+        cursor.execute('''
+            SELECT ap_a_id, quantity, reason, assigned_at
+            FROM ap_assignment
+            WHERE character_id = %s
+            ORDER BY assigned_at DESC
+        ''', (id,))
+        ap_log = cursor.fetchall()
+
+        cursor.execute('''
+            SELECT SUM(quantity) AS total_ap
+            FROM ap_assignment
+            WHERE character_id = %s
+        ''', (id,))
+        total_ap = cursor.fetchone()['total_ap'] or 0
     except Error as e:
-        flash(f"Error fetching character or items: {e}", "error")
+        flash(f"Error fetching character data: {e}", "error")
         return redirect(url_for('view_characters'))
     finally:
         cursor.close()
         conn.close()
 
-    return render_template('view_character.html', character=character, items=items)
+    return render_template('view_character.html', character=character, items=items, ap_log=ap_log, total_ap=total_ap)
 
 @app.route('/edit_character/<int:id>', methods=['GET', 'POST'])
 def edit_character(id):
@@ -829,14 +917,26 @@ def view_event(id):
         if event is None:
             flash("Event not found.", "error")
             return redirect(url_for('view_events'))
+
+        cursor.execute('''
+            SELECT ci.checkins_id, ci.timestamp AS checkin_time, co.timestamp AS checkout_time, 
+                   p.player_id, p.first_name, p.last_name, 
+                   c.character_id, c.name AS character_name
+            FROM Checkins ci
+            LEFT JOIN Checkouts co ON ci.event_id = co.event_id AND ci.player_id = co.player_id AND ci.character_id = co.character_id
+            JOIN Players p ON ci.player_id = p.player_id
+            JOIN Characters c ON ci.character_id = c.character_id
+            WHERE ci.event_id = %s
+        ''', (id,))
+        checkins = cursor.fetchall()
     except Error as e:
-        flash(f"Error fetching event: {e}", "error")
+        flash(f"Error fetching event or check-in data: {e}", "error")
         return redirect(url_for('view_events'))
     finally:
         cursor.close()
         conn.close()
 
-    return render_template('view_event.html', event=event)
+    return render_template('view_event.html', event=event, checkins=checkins)
 
 @app.route('/edit_event/<int:id>', methods=['GET', 'POST'])
 def edit_event(id):

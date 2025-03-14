@@ -9,4 +9,37 @@
     <p><strong>Start:</strong> {{ event.start.strftime('%Y-%m-%d %H:%M:%S') }}</p>
     <p><strong>End:</strong> {{ event.end.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 </div>
+
+<h3>Check-ins</h3>
+<table>
+    <tr>
+        <th>Player Name</th>
+        <th>Character Name</th>
+        <th>Check-in Time</th>
+        <th>Check-out Time</th>
+        <th>Actions</th>
+    </tr>
+    {% for checkin in checkins %}
+    <tr>
+        <td>{{ checkin.first_name }} {{ checkin.last_name }}</td>
+        <td>{{ checkin.character_name }}</td>
+        <td>{{ checkin.checkin_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>
+            {% if checkin.checkout_time %}
+                {{ checkin.checkout_time.strftime('%Y-%m-%d %H:%M:%S') }}
+            {% else %}
+                N/A
+            {% endif %}
+        </td>
+        <td>
+            <form action="{{ url_for('view_player', id=checkin.player_id) }}" method="GET" style="display:inline;">
+                <button type="submit">View Player</button>
+            </form>
+            <form action="{{ url_for('view_character', id=checkin.character_id) }}" method="GET" style="display:inline;">
+                <button type="submit">View Character</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

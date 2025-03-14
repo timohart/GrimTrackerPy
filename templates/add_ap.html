@@ -1,26 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Assign AP to Character{% endblock %}
+{% block title %}Add AP{% endblock %}
 
 {% block content %}
-<h2>Assign AP to Character</h2>
-<form action="{{ url_for('assign_ap') }}" method="POST" class="form-container">
+<h2>Add AP</h2>
+<form action="{{ url_for('add_ap') }}" method="POST" class="form-container">
     <div class="form-group">
         <label for="player_id">Select Player:</label>
         <select id="player_id" name="player_id" required>
             <option value="">--Select Player--</option>
             {% for player in players %}
                 <option value="{{ player.player_id }}">{{ player.first_name }} {{ player.last_name }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="character_id">Select Character:</label>
-        <select id="character_id" name="character_id" required>
-            <option value="">--Select Character--</option>
-            {% for character in characters %}
-                <option value="{{ character.character_id }}">{{ character.character_name }}</option>
             {% endfor %}
         </select>
     </div>
@@ -36,7 +26,7 @@
     </div>
 
     <div class="form-group">
-        <input type="submit" value="Assign AP">
+        <input type="submit" value="Add AP">
     </div>
 </form>
 {% endblock %}

@@ -13,6 +13,7 @@
     <p><strong>Silver:</strong> {{ character.silver }}</p>
     <p><strong>Copper:</strong> {{ character.copper }}</p>
     <p><strong>Character Sheet:</strong> {{ character.character_sheet }}</p>
+    <p><strong>Total Assigned AP:</strong> {{ total_ap }}</p>
 </div>
 
 <h3>Items</h3>
@@ -39,6 +40,24 @@
                 <button type="submit">Move</button>
             </form>
         </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>AP Log</h3>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Quantity</th>
+        <th>Reason</th>
+        <th>Date</th>
+    </tr>
+    {% for ap in ap_log %}
+    <tr>
+        <td>{{ ap.ap_a_id }}</td>
+        <td>{{ ap.quantity }}</td>
+        <td>{{ ap.reason }}</td>
+        <td>{{ ap.assigned_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
     </tr>
     {% endfor %}
 </table>

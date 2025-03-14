@@ -34,11 +34,11 @@
         <form action="{{ url_for('add_attendance') }}" method="get">
             <button type="submit">Log Attendance</button>
         </form>
-        <form action="{{ url_for('add_apearned') }}" method="get">
-            <button type="submit">Log AP Earned</button>
-        </form>
         <form action="{{ url_for('assign_ap') }}" method="get">
             <button type="submit">Assign AP to Character</button>
+        </form>
+        <form action="{{ url_for('add_ap') }}" method="get">
+            <button type="submit">Add AP</button>
         </form>
         <form action="{{ url_for('checkin') }}" method="get">
             <button type="submit">Check In</button>
@@ -62,7 +62,7 @@
     {% block content %}{% endblock %}
 
     <div class="footer">
-        <p>&copy; Timo Hartwig 2025 | Contact: <a href="mailto:timoh.larp@gmail.com">timoh.larp@gmail.com</a></p>
+        <p>Timo Hartwig &copy;2025 | Contact: <a href="mailto:timoh.larp@gmail.com">timoh.larp@gmail.com</a> | Used by: Grimour</p>
     </div>
 </body>
 </html>
