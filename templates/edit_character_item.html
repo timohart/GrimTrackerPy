@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Item{% endblock %}
+
+{% block content %}
+<h2>Edit Item</h2>
+<form action="{{ url_for('edit_character_item', id=character_item.character_item_id) }}" method="POST" class="form-container">
+    <div class="form-group">
+        <label for="item_name">Item Name:</label>
+        <input type="text" id="item_name" name="item_name" value="{{ character_item.item_name }}" disabled>
+    </div>
+
+    <div class="form-group">
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" value="{{ character_item.quantity }}" required>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Update Item">
+    </div>
+</form>
+{% endblock %}
