@@ -589,6 +589,14 @@ def view_player(id):
             WHERE player_id = %s
         ''', (id,))
         total_ap = cursor.fetchone()['total_ap'] or 0
+
+        cursor.execute('''
+            SELECT SUM(aa.quantity) AS total_assigned_ap
+            FROM ap_assignment aa
+            JOIN Characters c ON aa.character_id = c.character_id
+            WHERE c.player_id = %s
+        ''', (id,))
+        total_assigned_ap = cursor.fetchone()['total_assigned_ap'] or 0
     except Error as e:
         flash(f"Error fetching player data: {e}", "error")
         return redirect(url_for('view_players'))
@@ -596,7 +604,7 @@ def view_player(id):
         cursor.close()
         conn.close()
 
-    return render_template('view_player.html', player=player, characters=characters, ap_log=ap_log, total_ap=total_ap)
+    return render_template('view_player.html', player=player, characters=characters, ap_log=ap_log, total_ap=total_ap, total_assigned_ap=total_assigned_ap)
 
 @app.route('/view_characters', methods=['GET'])
 def view_characters():
