@@ -501,14 +501,23 @@ def view_player(id):
         if player is None:
             flash("Player not found.", "error")
             return redirect(url_for('index'))
+
+        cursor.execute('''
+            SELECT c.character_id, c.name AS character_name, r.name AS race_name, a.name AS archetype_name, c.gold, c.silver, c.copper
+            FROM Characters c
+            JOIN Races r ON c.race_id = r.race_id
+            JOIN Archetypes a ON c.archetype_id = a.archetype_id
+            WHERE c.player_id = %s
+        ''', (id,))
+        characters = cursor.fetchall()
     except Error as e:
-        flash(f"Error fetching player: {e}", "error")
+        flash(f"Error fetching player or characters: {e}", "error")
         return redirect(url_for('index'))
     finally:
         cursor.close()
         conn.close()
 
-    return render_template('view_player.html', player=player)
+    return render_template('view_player.html', player=player, characters=characters)
 
 @app.route('/view_characters', methods=['GET'])
 def view_characters():
