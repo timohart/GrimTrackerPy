@@ -907,5 +907,115 @@ def delete_event(id):
 
     return redirect(url_for('view_events'))
 
+@app.route('/checkin', methods=['GET', 'POST'])
+def checkin():
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        event_id = request.form.get('event_id')
+        player_id = request.form.get('player_id')
+        character_id = request.form.get('character_id')
+        copper = request.form.get('copper', 0)
+        silver = request.form.get('silver', 0)
+        gold = request.form.get('gold', 0)
+        timestamp = datetime.now()
+
+        if not event_id or not player_id or not character_id:
+            flash("Event, Player, and Character are required!", "error")
+            return redirect(url_for('checkin'))
+
+        try:
+            cursor = conn.cursor()
+            insert_query = '''
+                INSERT INTO Checkins (event_id, player_id, character_id, copper, silver, gold, timestamp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            '''
+            cursor.execute(insert_query, (event_id, player_id, character_id, copper, silver, gold, timestamp))
+            conn.commit()
+            flash("Check-in recorded successfully!", "success")
+        except Error as e:
+            flash(f"Error recording check-in: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT event_id, name FROM Events')
+        events = cursor.fetchall()
+
+        cursor.execute('SELECT player_id, first_name, last_name FROM Players')
+        players = cursor.fetchall()
+
+        cursor.execute('SELECT character_id, name AS character_name FROM Characters')
+        characters = cursor.fetchall()
+    except Error as e:
+        flash(f"Error fetching data: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('checkin.html', events=events, players=players, characters=characters)
+
+@app.route('/checkout', methods=['GET', 'POST'])
+def checkout():
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        event_id = request.form.get('event_id')
+        player_id = request.form.get('player_id')
+        character_id = request.form.get('character_id')
+        copper = request.form.get('copper', 0)
+        silver = request.form.get('silver', 0)
+        gold = request.form.get('gold', 0)
+        timestamp = datetime.now()
+
+        if not event_id or not player_id or not character_id:
+            flash("Event, Player, and Character are required!", "error")
+            return redirect(url_for('checkout'))
+
+        try:
+            cursor = conn.cursor()
+            insert_query = '''
+                INSERT INTO Checkouts (event_id, player_id, character_id, copper, silver, gold, timestamp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            '''
+            cursor.execute(insert_query, (event_id, player_id, character_id, copper, silver, gold, timestamp))
+            conn.commit()
+            flash("Check-out recorded successfully!", "success")
+        except Error as e:
+            flash(f"Error recording check-out: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('index'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT event_id, name FROM Events')
+        events = cursor.fetchall()
+
+        cursor.execute('SELECT player_id, first_name, last_name FROM Players')
+        players = cursor.fetchall()
+
+        cursor.execute('SELECT character_id, name AS character_name FROM Characters')
+        characters = cursor.fetchall()
+    except Error as e:
+        flash(f"Error fetching data: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('checkout.html', events=events, players=players, characters=characters)
+
 if __name__ == '__main__':
     app.run(debug=True)

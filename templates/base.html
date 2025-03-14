@@ -40,6 +40,12 @@
         <form action="{{ url_for('assign_ap') }}" method="get">
             <button type="submit">Assign AP to Character</button>
         </form>
+        <form action="{{ url_for('checkin') }}" method="get">
+            <button type="submit">Check In</button>
+        </form>
+        <form action="{{ url_for('checkout') }}" method="get">
+            <button type="submit">Check Out</button>
+        </form>
     </div>
 
     <!-- Flash Messages -->
