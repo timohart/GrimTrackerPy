@@ -1091,16 +1091,38 @@ def checkout():
             return redirect(url_for('checkout'))
 
         try:
-            cursor = conn.cursor()
-            insert_query = '''
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute('SELECT name, start, end FROM Events WHERE event_id = %s', (event_id,))
+            event = cursor.fetchone()
+            if not event:
+                flash("Event not found.", "error")
+                return redirect(url_for('checkout'))
+
+            # Calculate days attended
+            start_date = event['start']
+            end_date = event['end']
+            days_attended = (end_date - start_date).days + 1
+            ap_earned = days_attended
+
+            # Insert checkout record
+            insert_checkout_query = '''
                 INSERT INTO Checkouts (event_id, player_id, character_id, copper, silver, gold, timestamp)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             '''
-            cursor.execute(insert_query, (event_id, player_id, character_id, copper, silver, gold, timestamp))
+            cursor.execute(insert_checkout_query, (event_id, player_id, character_id, copper, silver, gold, timestamp))
+
+            # Insert AP earned record
+            reason = f"{event['name']} - {days_attended} days attended"
+            insert_ap_query = '''
+                INSERT INTO ap_creation (player_id, quantity, reason)
+                VALUES (%s, %s, %s)
+            '''
+            cursor.execute(insert_ap_query, (player_id, ap_earned, reason))
+
             conn.commit()
-            flash("Check-out recorded successfully!", "success")
+            flash("Check-out recorded successfully and AP earned!", "success")
         except Error as e:
-            flash(f"Error recording check-out: {e}", "error")
+            flash(f"Error recording check-out or AP: {e}", "error")
         finally:
             cursor.close()
             conn.close()

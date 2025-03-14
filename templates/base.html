@@ -4,61 +4,103 @@
     <meta charset="UTF-8">
     <title>{% block title %}GrimTracker{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <div class="header">
-        <h1>GrimTracker</h1>
-    </div>
-    <div class="nav-buttons">
-        <form action="{{ url_for('index') }}" method="get">
-            <button type="submit">Home</button>
-        </form>
-        <form action="{{ url_for('add_player') }}" method="get">
-            <button type="submit">Add Player</button>
-        </form>
-        <form action="{{ url_for('add_character') }}" method="get">
-            <button type="submit">Add Character</button>
-        </form>
-        <form action="{{ url_for('view_characters') }}" method="get">
-            <button type="submit">View Characters</button>
-        </form>
-        <form action="{{ url_for('add_item') }}" method="get">
-            <button type="submit">Add Item</button>
-        </form>
-        <form action="{{ url_for('add_event') }}" method="get">
-            <button type="submit">Add Event</button>
-        </form>
-        <form action="{{ url_for('view_events') }}" method="get">
-            <button type="submit">View Events</button>
-        <form action="{{ url_for('assign_ap') }}" method="get">
-            <button type="submit">Assign AP to Character</button>
-        </form>
-        <form action="{{ url_for('add_ap') }}" method="get">
-            <button type="submit">Add AP</button>
-        </form>
-        <form action="{{ url_for('checkin') }}" method="get">
-            <button type="submit">Check In</button>
-        </form>
-        <form action="{{ url_for('checkout') }}" method="get">
-            <button type="submit">Check Out</button>
-        </form>
-    </div>
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">
-                    {{ message }}
+    <div class="top">
+        <div class="header">
+            <h1>GrimTracker</h1>
+        </div>
+        <div class="nav-buttons">
+            <form action="{{ url_for('index') }}" method="get">
+                <button type="submit">Home</button>
+            </form>
+            <div class="dropdown">
+                <button class="dropbtn">Players</button>
+                <div class="dropdown-content">
+                    <form action="{{ url_for('add_player') }}" method="get">
+                        <button type="submit">Add Player</button>
+                    </form>
+                    <form action="{{ url_for('index') }}" method="get">
+                        <button type="submit">View Players</button>
+                    </form>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    {% block content %}{% endblock %}
-
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn">Characters</button>
+                <div class="dropdown-content">
+                    <form action="{{ url_for('add_character') }}" method="get">
+                        <button type="submit">Add Character</button>
+                    </form>
+                    <form action="{{ url_for('view_characters') }}" method="get">
+                        <button type="submit">View Characters</button>
+                    </form>
+                    <form action="{{ url_for('assign_ap') }}" method="get">
+                        <button type="submit">Assign AP to Character</button>
+                    </form>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn">Items</button>
+                <div class="dropdown-content">
+                    <form action="{{ url_for('add_item') }}" method="get">
+                        <button type="submit">Add Item</button>
+                    </form>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn">Events</button>
+                <div class="dropdown-content">
+                    <form action="{{ url_for('add_event') }}" method="get">
+                        <button type="submit">Add Event</button>
+                    </form>
+                    <form action="{{ url_for('view_events') }}" method="get">
+                        <button type="submit">View Events</button>
+                    </form>
+                    <form action="{{ url_for('checkin') }}" method="get">
+                        <button type="submit">Check In</button>
+                    </form>
+                    <form action="{{ url_for('checkout') }}" method="get">
+                        <button type="submit">Check Out</button>
+                    </form>
+                </div>
+            </div>
+            <form action="{{ url_for('add_ap') }}" method="get">
+                <button type="submit">Add AP</button>
+            </form>
+        </div>
+    
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    
+        {% block content %}{% endblock %}
+    
+    </div>
+   
     <div class="footer">
         <p>Timo Hartwig &copy;2025 | Contact: <a href="mailto:timoh.larp@gmail.com">timoh.larp@gmail.com</a> | Used by: Grimour</p>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.dropbtn').on('click', function() {
+                $(this).next('.dropdown-content').toggle();
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.dropdown').length) {
+                    $('.dropdown-content').hide();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
