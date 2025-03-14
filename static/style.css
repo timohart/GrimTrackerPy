@@ -1,3 +1,19 @@
+/* Set default font to a sans-serif font */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Set h1 elements to an old-looking font */
+h1 {
+    font-family: 'Old English Text MT', 'Goudy Old Style', serif;
+    font-size: 3em;
+}
+
+/* Set h2 to h6 elements to a fancier sans-serif font */
+h2, h3, h4, h5, h6 {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
 table {
     border-collapse: collapse;
     width: 100%;
