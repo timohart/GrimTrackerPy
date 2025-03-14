@@ -155,31 +155,31 @@ def add_item():
 
     if request.method == 'POST':
         character_id = request.form.get('character_id')
-        item_name = request.form.get('item_name', '').strip()
-        quantity = request.form.get('quantity', '1').strip()
-        description = request.form.get('description', '').strip()
+        item_type_id = request.form.get('item_type_id')
+        name = request.form.get('name')
+        description = request.form.get('description')
+        quantity = request.form.get('quantity', 1)
 
-        if not character_id or not item_name:
-            flash("Character and Item Name are required!", "error")
-            return redirect(url_for('add_item'))
-
-        try:
-            quantity = int(quantity)
-            if quantity < 1:
-                raise ValueError
-        except ValueError:
-            flash("Quantity must be a positive integer.", "error")
+        if not character_id or not item_type_id or not name:
+            flash("Character, Item Type, and Item Name are required!", "error")
             return redirect(url_for('add_item'))
 
         try:
             cursor = conn.cursor()
-            insert_query = '''
-                INSERT INTO Items (character_id, item_name, quantity, description)
-                VALUES (%s, %s, %s, %s)
+            insert_item_query = '''
+                INSERT INTO Items (item_type_id, name, description)
+                VALUES (%s, %s, %s)
             '''
-            cursor.execute(insert_query, (character_id, item_name, quantity, description))
+            cursor.execute(insert_item_query, (item_type_id, name, description))
+            item_id = cursor.lastrowid
+
+            insert_character_item_query = '''
+                INSERT INTO Character_Items (character_id, item_id, quantity)
+                VALUES (%s, %s, %s)
+            '''
+            cursor.execute(insert_character_item_query, (character_id, item_id, quantity))
             conn.commit()
-            flash(f"Item '{item_name}' added successfully!", "success")
+            flash(f"Item '{name}' added successfully!", "success")
         except Error as e:
             flash(f"Error adding item: {e}", "error")
         finally:
@@ -187,18 +187,21 @@ def add_item():
             conn.close()
         return redirect(url_for('index'))
 
-    # GET request: Fetch all characters to select from
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT character_id, character_name FROM Characters')
+        cursor.execute('SELECT character_id, name AS character_name FROM Characters')
         characters = cursor.fetchall()
-        return render_template('add_item.html', characters=characters)
+
+        cursor.execute('SELECT item_type_id, name FROM Item_Types')
+        item_types = cursor.fetchall()
     except Error as e:
-        flash(f"Error fetching characters: {e}", "error")
+        flash(f"Error fetching data: {e}", "error")
         return redirect(url_for('index'))
     finally:
         cursor.close()
         conn.close()
+
+    return render_template('add_item.html', characters=characters, item_types=item_types)
 
 # 3. Add Event
 @app.route('/add_event', methods=['GET', 'POST'])
@@ -586,14 +589,22 @@ def view_character(id):
         if character is None:
             flash("Character not found.", "error")
             return redirect(url_for('view_characters'))
+
+        cursor.execute('''
+            SELECT ci.character_item_id, i.name AS item_name, i.description, ci.quantity
+            FROM Character_Items ci
+            JOIN Items i ON ci.item_id = i.item_id
+            WHERE ci.character_id = %s
+        ''', (id,))
+        items = cursor.fetchall()
     except Error as e:
-        flash(f"Error fetching character: {e}", "error")
+        flash(f"Error fetching character or items: {e}", "error")
         return redirect(url_for('view_characters'))
     finally:
         cursor.close()
         conn.close()
 
-    return render_template('view_character.html', character=character)
+    return render_template('view_character.html', character=character, items=items)
 
 @app.route('/edit_character/<int:id>', methods=['GET', 'POST'])
 def edit_character(id):
@@ -657,6 +668,129 @@ def edit_character(id):
         conn.close()
 
     return render_template('edit_character.html', character=character, players=players, races=races, archetypes=archetypes)
+
+@app.route('/edit_character_item/<int:id>', methods=['GET', 'POST'])
+def edit_character_item(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_characters'))
+
+    if request.method == 'POST':
+        quantity = request.form.get('quantity')
+
+        if not quantity:
+            flash("Quantity is required!", "error")
+            return redirect(url_for('edit_character_item', id=id))
+
+        try:
+            cursor = conn.cursor()
+            update_query = '''
+                UPDATE Character_Items
+                SET quantity = %s
+                WHERE character_item_id = %s
+            '''
+            cursor.execute(update_query, (quantity, id))
+            conn.commit()
+            flash("Item updated successfully!", "success")
+        except Error as e:
+            flash(f"Error updating item: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('view_characters'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT ci.character_item_id, i.name AS item_name, ci.quantity
+            FROM Character_Items ci
+            JOIN Items i ON ci.item_id = i.item_id
+            WHERE ci.character_item_id = %s
+        ''', (id,))
+        character_item = cursor.fetchone()
+        if character_item is None:
+            flash("Item not found.", "error")
+            return redirect(url_for('view_characters'))
+    except Error as e:
+        flash(f"Error fetching item: {e}", "error")
+        return redirect(url_for('view_characters'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('edit_character_item.html', character_item=character_item)
+
+@app.route('/delete_character_item/<int:id>', methods=['POST'])
+def delete_character_item(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_characters'))
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM Character_Items WHERE character_item_id = %s', (id,))
+        conn.commit()
+        flash('Item deleted successfully!', 'success')
+    except Error as e:
+        flash(f'Error deleting item: {e}', 'error')
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('view_characters'))
+
+@app.route('/move_character_item/<int:id>', methods=['GET', 'POST'])
+def move_character_item(id):
+    conn = get_db_connection()
+    if not conn:
+        flash("Failed to connect to the database.", "error")
+        return redirect(url_for('view_characters'))
+
+    if request.method == 'POST':
+        target_character_id = request.form.get('target_character_id')
+
+        if not target_character_id:
+            flash("Target character is required!", "error")
+            return redirect(url_for('move_character_item', id=id))
+
+        try:
+            cursor = conn.cursor()
+            update_query = '''
+                UPDATE Character_Items
+                SET character_id = %s
+                WHERE character_item_id = %s
+            '''
+            cursor.execute(update_query, (target_character_id, id))
+            conn.commit()
+            flash("Item moved successfully!", "success")
+        except Error as e:
+            flash(f"Error moving item: {e}", "error")
+        finally:
+            cursor.close()
+            conn.close()
+        return redirect(url_for('view_characters'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT character_item_id, character_id FROM Character_Items WHERE character_item_id = %s', (id,))
+        character_item = cursor.fetchone()
+
+        cursor.execute('SELECT character_id, name AS character_name FROM Characters')
+        characters = cursor.fetchall()
+
+        if character_item is None:
+            flash("Item not found.", "error")
+            return redirect(url_for('view_characters'))
+    except Error as e:
+        flash(f"Error fetching data: {e}", "error")
+        return redirect(url_for('view_characters'))
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('move_character_item.html', character_item=character_item, characters=characters)
 
 if __name__ == '__main__':
     app.run(debug=True)
