@@ -3,7 +3,7 @@ from datetime import datetime
 import mysql.connector
 from mysql.connector import Error
 
-app = Flask(__name__)
+app = Flask("GrimTracker")
 app.secret_key = 'your_secret_key'  # Replace with a strong secret key
 
 # Database connection
@@ -1149,4 +1149,4 @@ def checkout():
     return render_template('checkout.html', events=events, players=players, characters=characters)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True)
