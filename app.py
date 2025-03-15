@@ -1149,4 +1149,4 @@ def checkout():
     return render_template('checkout.html', events=events, players=players, characters=characters)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='grimtrackerpy-production.up.railway.app', port=8080)
