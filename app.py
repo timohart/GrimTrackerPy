@@ -10,10 +10,11 @@ app.secret_key = 'your_secret_key'  # Replace with a strong secret key
 def get_db_connection():
     try:
         conn = mysql.connector.connect(
-            host="localhost",
-            user="root",          # Replace with your MySQL user
-            password="HellBorn",  # Replace with your MySQL password
-            database="grim_db"    # Your database name
+            host="mysql.railway.internal",
+            user="root",
+            password="hgdqTrOFQqXQrHDmmkofELfnllgvcCTF",
+            database="railway",
+            port=3306
         )
         if conn.is_connected():
             return conn
